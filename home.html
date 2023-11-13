@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Blood Donors</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="searchInput" placeholder="Enter search term">
+    <button onclick="search()">Search</button>
+    <div id="result"></div>
+
+    <script>
+        var apiKey = "AIzaSyB4Y-jKBs4mICYtjOPe7FU_EjgOprc2z2w"; // Replace with your API key
+        var spreadsheetId = "1uWmV85MG_3TgPrWPJ6SgPqq1-bOQ_wV_WuK9FlO5hX0"; // Replace with your Google Sheets ID
+        var range = "Bloodseaportal"; // Replace with your sheet name
+
+        // Function to fetch data and update the content using Google Sheets API
+        function fetchDataAndDisplay(searchTerm) {
+            // Construct the Google Sheets API URL
+            var apiURL = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+
+            // Make an AJAX request to fetch data from the Google Sheets API
+            $.ajax({
+                url: apiURL,
+                method: 'GET',
+                success: function (response) {
+                    var result = processData(response.values, searchTerm);
+                    $('#result').html(result);
+                },
+                error: function (error) {
+                    console.error('Error fetching data from the Google Sheets API', error);
+                }
+            });
+        }
+
+        // Perform initial fetch on page load
+        $(document).ready(function () {
+            var searchTerm = $('#searchInput').val();
+            fetchDataAndDisplay(searchTerm);
+        });
+
+        // Poll for data every 5 seconds (adjust as needed)
+        setInterval(function () {
+            var searchTerm = $('#searchInput').val();
+            fetchDataAndDisplay(searchTerm);
+        }, 5 * 1000); // 5000 milliseconds = 5 seconds
+
+        function search() {
+            var searchTerm = $('#searchInput').val();
+            fetchDataAndDisplay(searchTerm);
+        }
+
+        function processData(data, searchTerm) {
+            // Display the results in a table
+            var resultHtml = '<h3>Search Results:</h3>';
+            resultHtml += '<table>';
+            resultHtml += '<tr>';
+
+            // Dynamically generate table headers
+            for (var j = 0; j < data[0].length; j++) {
+                resultHtml += '<th>' + data[0][j] + '</th>';
+            }
+
+            resultHtml += '</tr>';
+
+            // Dynamically generate table rows
+            for (var k = 1; k < data.length && k <= 10; k++) {
+                var row = data[k];
+
+                resultHtml += '<tr>';
+                for (var l = 0; l < row.length; l++) {
+                    resultHtml += '<td>' + row[l] + '</td>';
+                }
+                resultHtml += '</tr>';
+            }
+
+            resultHtml += '</table>';
+            return resultHtml;
+        }
+    </script>
+</body>
+</html>
